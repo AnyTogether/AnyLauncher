@@ -1,0 +1,73 @@
+# AnyLauncher
+
+**AnyPS5.app**, the launcher of [AnyPS5-ARM](https://github.com/AnyTogether/AnyPS5-ARM): a home screen laid out like the PS5's, in SwiftUI, for macOS 14 and newer on Apple silicon.
+
+![The launcher's home screen](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-home.jpg)
+
+This repository holds the launcher alone. The engine it runs games with is [AnyPS5-ARM](https://github.com/AnyTogether/AnyPS5-ARM), the phone app is [AnyMobile](https://github.com/AnyTogether/AnyMobile) and the online side is [AnyTogether](https://github.com/AnyTogether/AnyTogether). Releases, with every platform, are published from [AnyPS5-ARM](https://github.com/AnyTogether/AnyPS5-ARM/releases/latest).
+
+## Windows and Linux
+
+This launcher is for macOS. On **Windows and Linux**, use [**AnyLauncher Port**](https://github.com/AnyTogether/AnyLauncher-Port): the same launcher for those systems, with the PS5-style home screen, unlocking and starting games, per-game controls, trophies and AnyTogether. Downloads are on its [releases page](https://github.com/AnyTogether/AnyLauncher-Port/releases/latest).
+
+## What it does
+
+- **Finds the games** in a folder of PS5 dumps, with their icons, backgrounds, music, sizes and trophy counts.
+- **Unlocks them:** the engine's relinker turns each game into a Mac app, kept in the games folder (`.AnyPS5/Games`), with the game's own files and saves beside it (`.AnyPS5/Data`) so macOS checks the app only once.
+- **Starts them**, with a start screen until the game's first window shows, and says in plain words why a game stopped when it ends on an error.
+- **Per game:** controls (keyboard and mouse to pad), resolution, language, deadzones, the mouse as the camera, the shader cache, and sharing all of it as one file.
+- **Screenshots and saves:** a gallery of each game's F12 shots, and backing up and restoring its saves and trophies.
+- **Trophies:** the list as the console shows it, and a card over the game when one is earned.
+- **Music:** the selected game's own theme song fades in, like on the PS5, with volumes for it and the interface sounds.
+- **Updates:** it tells you when a new AnyPS5 is out and replaces itself with it from Settings → About.
+- **Getting around:** arrow keys, Return, Esc and O, or a controller; L1 / R1 (Q / E) jump between games, also inside a game's panels.
+- **Discord:** the game you play on your profile, as itself when Discord knows it.
+- **The phone as a controller:** a server for AnyPS5 Remote (branch [`mobile-controller`](https://github.com/AnyTogether/AnyPS5-ARM/tree/mobile-controller)): pairing, the game list, moving around the launcher, starting and stopping games, and relaying the pad to the game.
+- English and Turkish; English by default.
+
+## AnyTogether
+
+The launcher's online side, optional: friends, profiles, messages, parties and voice chat, Share play, leaderboards and the Theme Hub, on [AnyTogether](https://anytogether.kodla.agency) (open source, [AnyTogether/AnyTogether](https://github.com/AnyTogether/AnyTogether)). The people in these pictures are made up.
+
+| | |
+|---|---|
+| ![Profiles: games, play time, trophies with rarity](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-profile.jpg)<br>Profiles: games, play time, trophies with rarity | ![Friends and what they play](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-friends.jpg)<br>Friends and what they play |
+| ![Activity feed with reactions](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-activity.jpg)<br>Activity feed with reactions | ![Messages and group chats](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-messages.jpg)<br>Messages and group chats |
+| ![Parties with voice chat](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-party.jpg)<br>Parties with voice chat | ![Share play: friends watch or join as player 2–4](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-shareplay.jpg)<br>Share play: friends watch or join as player 2–4 |
+| ![Leaderboards](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-leaderboard.jpg)<br>Leaderboards | ![Notifications](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-notifications.jpg)<br>Notifications |
+| ![Theme Hub](https://raw.githubusercontent.com/AnyTogether/AnyPS5-ARM/main/docs/screenshots/launcher-hub.jpg)<br>Theme Hub |  |
+
+## Layout
+
+| Folder | What it is |
+|---|---|
+| `Sources/AnyPS5` | The app: screens, panels, input, sounds, the headless preview renderer. |
+| `Sources/AnyPS5Core` | What the app and the tool share: the library scan, installing, game settings, trophies, diagnosis, Discord, the phone server. |
+| `Sources/anyps5-tool` | A command-line tool on the same core: `scan`, `install`, `unwrap`, and `remote` (the phone server, with a pretend library for testing). |
+| `Tests/AnyPS5CoreTests` | The core's tests. |
+| `icon.swift` | Draws the app icon. |
+
+## Building
+
+```sh
+swift build            # debug build of the app and the tool
+swift test             # the core's tests
+```
+
+The app needs the engine's toolkit (the relinker, the system libraries, MoltenVK) to unlock and start games. A full AnyPS5.app with the toolkit inside is built from `main`, with `tools/macos/build_launcher_app.sh`.
+
+### Screens without a window
+
+```sh
+.build/debug/AnyPS5 --render-preview <output folder> <games folder>
+```
+
+draws every screen into PNG files without opening a window. `ANYPS5_PREVIEW_SELECT=<title ID>` picks the game shown and `ANYPS5_PREVIEW_LANGUAGE=tr` draws them in Turkish.
+
+## Credits
+
+- Online play's bridge protocol design is based on AnyPlay's bridge spec ([anyplaynet/network](https://github.com/anyplaynet/network/blob/main/spec/bridge-protocol.md), MIT/Apache-2.0): the frame header, the message numbering, the virtual LAN range and the A/B/C screening of games come from it. The launcher's online-play service (`Sources/AnyPS5Core/Online`) speaks that protocol.
+
+## License
+
+[LICENSE](LICENSE)
