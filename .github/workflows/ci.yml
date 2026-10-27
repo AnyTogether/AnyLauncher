@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: swift test
+    # Liquid Glass (glassEffect) needs the macOS 26 SDK.
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The newest Xcode on the runner (its SDK has Liquid Glass; the launcher must also build with Xcode 26's Swift 6.3).
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          swift --version
+      - uses: actions/cache@v6
+        with:
+          path: .build
+          key: spm-debug-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-${{ github.sha }}
+          restore-keys: spm-debug-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-
+      - name: swift test (without the runner-dependent tests in .github/ci/swift-test-skips.txt)
+        run: |
+          skips=()
+          while read -r pattern _; do skips+=(--skip "$pattern"); done < <(grep -Ev '^(#|[[:space:]]*$)' .github/ci/swift-test-skips.txt)
+          echo "swift test ${skips[*]}"
+          swift test "${skips[@]}"
+
+  release:
+    name: swift build -c release
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The newest Xcode on the runner (its SDK has Liquid Glass; the launcher must also build with Xcode 26's Swift 6.3).
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          swift --version
+      - uses: actions/cache@v6
+        with:
+          path: .build
+          key: spm-release-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-${{ github.sha }}
+          restore-keys: spm-release-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-
+      - run: swift build -c release
+
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [test, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          bad=$(echo "$NEEDS" | jq -r '[to_entries[] | select(.value.result != "success" and .value.result != "skipped") | .key] | join(", ")')
+          if [ -n "$bad" ]; then echo "::error::Not passed: $bad"; exit 1; fi
