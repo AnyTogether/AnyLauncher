@@ -27,7 +27,7 @@ This launcher is for macOS. On **Windows and Linux**, use [**AnyLauncher Port**]
 
 ## AnyTogether
 
-The launcher's online side, optional: friends, profiles, messages, parties and voice chat, Share play, leaderboards and the Theme Hub, on [AnyTogether](https://anytogether.kodla.agency) (open source, [AnyTogether/AnyTogether](https://github.com/AnyTogether/AnyTogether)). The people in these pictures are made up.
+The launcher's online side, optional: friends, profiles, messages, parties and voice chat, Share play, leaderboards and the Theme Hub, on [AnyTogether](https://anytogether.net) (open source, [AnyTogether/AnyTogether](https://github.com/AnyTogether/AnyTogether)). The people in these pictures are made up.
 
 | | |
 |---|---|
