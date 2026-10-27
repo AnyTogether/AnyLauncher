@@ -35,7 +35,12 @@ jobs:
           path: .build
           key: spm-debug-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-${{ github.sha }}
           restore-keys: spm-debug-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-
-      - run: swift test
+      - name: swift test (without the runner-dependent tests in .github/ci/swift-test-skips.txt)
+        run: |
+          skips=()
+          while read -r pattern _; do skips+=(--skip "$pattern"); done < <(grep -Ev '^(#|[[:space:]]*$)' .github/ci/swift-test-skips.txt)
+          echo "swift test ${skips[*]}"
+          swift test "${skips[@]}"
 
   release:
     name: swift build -c release
